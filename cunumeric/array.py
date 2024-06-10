@@ -27,10 +27,12 @@ from typing import (
     TypeVar,
     Union,
     cast,
+    Type,
 )
 
 import numpy as np
-from legate.core import Array, Field
+from legate.core import Array, Field, Future
+from legate.core.store import RegionField
 from legate.core.utils import OrderedSet
 from numpy.core.multiarray import (  # type: ignore [attr-defined]
     normalize_axis_index,
@@ -60,6 +62,10 @@ from .utils import (
     to_core_dtype,
     tuple_pop,
 )
+
+
+from cunumeric.deferred import DeferredArray
+
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -367,6 +373,25 @@ class ndarray:
             field = Field("cuNumeric Array", dtype)
             self._legate_data["data"] = {field: array}
         return self._legate_data
+    
+    @property
+    def kind(self) -> Union[Type[RegionField], Type[Future]]:
+        if not isinstance(self._thunk, DeferredArray):
+            raise ValueError("Data is not backed by Store")
+        return self._thunk.base.kind
+    
+    def extract_legion_resources(self):
+        if self.kind is not RegionField:
+            raise TypeError("Array is not a Legion backed DeferredArray")
+        store = self._thunk.base
+        return store.extract_legion_resources()
+    
+    def extract_future(self):
+        if self.kind is not Future:
+            raise TypeError("Array is not a Legion backed Future")
+        store = self._thunk.base
+        return store.extract_future()
+
 
     # Properties for ndarray
 

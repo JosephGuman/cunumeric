@@ -68,6 +68,8 @@ if TYPE_CHECKING:
     from ._ufunc.ufunc import CastingKind
     from .types import BoundsMode, ConvolveMode, SelectKind, SortType
 
+    import legate.core.types as ty
+
 _builtin_abs = abs
 _builtin_all = all
 _builtin_any = any
@@ -549,6 +551,25 @@ def array(
         result = result.reshape(shape)
     return result
 
+def wrap_region_field(
+    field_id,
+    logical_region,
+    permission_owning_logical_region,
+    dtype: ty.Dtype,
+):
+    thunk = runtime.wrap_region_field(
+        field_id,
+        logical_region,
+        permission_owning_logical_region,
+        dtype
+    )
+    return ndarray(shape=None, thunk=thunk)
+
+def set_legion_compose_mode():
+    runtime.set_legion_compose_mode()
+
+def unset_legion_compose_mode():
+    runtime.unset_legion_compose_mode()
 
 def asarray(a: Any, dtype: Optional[np.dtype[Any]] = None) -> ndarray:
     """

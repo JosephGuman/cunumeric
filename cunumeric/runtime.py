@@ -444,6 +444,41 @@ class Runtime(object):
 
         # Make this into an eager evaluated thunk
         return EagerArray(self, array)
+    
+
+    def set_legion_compose_mode(self):
+        self.legate_runtime.set_legion_compose_mode()
+
+
+    def unset_legion_compose_mode(self):
+        self.legate_runtime.unset_legion_compose_mode()
+
+
+    def wrap_region_field(
+        self,
+        field_id_t,
+        logical_region_t,
+        permission_owning_logical_region_t,
+        dtype: ty.Dtype,
+    ):   
+        """
+        Create Legate state storing objects separate from the primary legate runtime 
+        for garbage collection purposes
+        """
+
+        store = self.legate_runtime.wrap_region_field(
+            field_id_t,
+            logical_region_t,
+            permission_owning_logical_region_t,
+            dtype
+        )
+
+        deferred = DeferredArray(
+            self,
+            store,
+        )
+        return deferred
+        
 
     def create_empty_thunk(
         self,
