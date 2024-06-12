@@ -50,8 +50,9 @@ def create_pygion(array, field_name):
 
 
 
+shape = (10000,1000)
+rect = Rect(shape)
 
-rect = Rect((10,))
 # Region represented in pure Legion
 index_space = legion.legion_index_space_create_domain(runtime, context, rect.raw())
 field_space = legion.legion_field_space_create(runtime, context)
@@ -79,4 +80,16 @@ pygion_rep, field_name = create_pygion(legate_rep, 'x')
 init(pygion_rep)
 
 # Changes are propogated through the different worlds
+print(legate_rep)
+
+# Registering our own task with pygion
+my_external_type = pygion.extern_task(
+    task_id=gpuTask,
+    argument_types=[Region],
+    privileges=[RW('x')],
+    return_type = pygion.void,
+    calling_convention='regent')
+
+my_external_type(pygion_rep)
+
 print(legate_rep)
